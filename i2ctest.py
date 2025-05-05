@@ -1,4 +1,4 @@
-import smbus2
+import smbus
 import time
 
 # Define device parameters
@@ -16,7 +16,7 @@ E_PULSE = 0.0005
 E_DELAY = 0.0005
 
 # Initialize I2C (SMBus)
-bus = smbus2.SMBus(1)  # Use 0 for older Raspberry Pi versions
+bus = smbus.SMBus(1)  # Use 0 for older Raspberry Pi versions
 
 def lcd_init():
     lcd_byte(0x33,LCD_CMD) # Initialize
