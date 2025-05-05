@@ -2,7 +2,7 @@ import requests
 import time
 from I2C_LCD_driver import I2CLCD
 
-lcd = I2CLCD(addr=0x30)
+lcd = I2CLCD(addr=0x27)
 
 symbol = 'BTCUSDT'
 api_url = f'https://api.api-ninjas.com/v1/cryptoprice?symbol={symbol}'
