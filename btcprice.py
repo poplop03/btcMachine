@@ -68,3 +68,5 @@ while True:
         print("Exception:", e)
 
     time.sleep(1)
+
+@reboot /usr/bin/python3 ~/btcMachine/btcprice.py
