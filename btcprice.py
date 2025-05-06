@@ -2,17 +2,15 @@ import smbus2 as smbus
 import time
 import requests
 
-# LCD Constants
+# LCD setup
 I2C_ADDR = 0x27
 LCD_WIDTH = 16
 LCD_CHR = 1
 LCD_CMD = 0
-
 LCD_LINE_1 = 0x80
 LCD_LINE_2 = 0xC0
 LCD_BACKLIGHT = 0x08
 ENABLE = 0b00000100
-
 bus = smbus.SMBus(2)
 
 def lcd_toggle_enable(bits):
@@ -25,7 +23,6 @@ def lcd_toggle_enable(bits):
 def lcd_byte(bits, mode):
     high = mode | (bits & 0xF0) | LCD_BACKLIGHT
     low = mode | ((bits << 4) & 0xF0) | LCD_BACKLIGHT
-
     bus.write_byte(I2C_ADDR, high)
     lcd_toggle_enable(high)
     bus.write_byte(I2C_ADDR, low)
@@ -51,20 +48,23 @@ symbol = 'BTCUSDT'
 api_url = f'https://api.api-ninjas.com/v1/cryptoprice?symbol={symbol}'
 headers = {'X-Api-Key': 'mdLctKthWCR2lN6ElcChEg==WjovL7Hr7W9TGaMg'}
 
-# Main loop
+# Init LCD
 lcd_init()
 lcd_message("BTC/USDT", LCD_LINE_1)
 
+# Main loop
 while True:
     try:
-        response = requests.get(api_url, headers=headers)
+        response = requests.get(api_url, headers=headers, timeout=5)
         if response.status_code == requests.codes.ok:
             data = response.json()
             price = "{:.2f}".format(data['price'])
             lcd_message(price, LCD_LINE_2)
         else:
             lcd_message("API Error", LCD_LINE_2)
+            print("API Error:", response.status_code, response.text)
     except Exception as e:
         lcd_message("Conn. Error", LCD_LINE_2)
-    
+        print("Exception:", e)
+
     time.sleep(1)
