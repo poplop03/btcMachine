@@ -58,7 +58,7 @@ while True:
         response = requests.get(api_url, headers=headers, timeout=5)
         if response.status_code == requests.codes.ok:
             data = response.json()
-            price = "{:.2f}".format(data['price'])
+            price = "{:.2f}".format(float(data['price']))
             lcd_message(price, LCD_LINE_2)
         else:
             lcd_message("API Error", LCD_LINE_2)
