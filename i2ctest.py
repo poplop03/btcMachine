@@ -1,55 +1,51 @@
-import smbus
+import smbus2 as smbus
 import time
 
-# Define device parameters
-I2C_ADDR  = 0x27  # Replace with your LCD's I2C address
-LCD_WIDTH = 16    # Maximum characters per line
+# LCD constants
+I2C_ADDR = 0x27
+LCD_WIDTH = 16
+LCD_CHR = 1
+LCD_CMD = 0
 
-# Define some device constants
-LCD_CHR = 1       # Mode - Sending data
-LCD_CMD = 0       # Mode - Sending command
+LCD_LINE_1 = 0x80
+LCD_BACKLIGHT = 0x08
 
-LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
+ENABLE = 0b00000100
 
-# Timing constants
-E_PULSE = 0.0005
-E_DELAY = 0.0005
-
-# Initialize I2C (SMBus)
-bus = smbus.SMBus(1)  # Use 0 for older Raspberry Pi versions
-
-def lcd_init():
-    lcd_byte(0x33,LCD_CMD) # Initialize
-    lcd_byte(0x32,LCD_CMD) # Set to 4-bit mode
-    lcd_byte(0x06,LCD_CMD) # Cursor move direction
-    lcd_byte(0x0C,LCD_CMD) # Turn cursor off
-    lcd_byte(0x28,LCD_CMD) # 2 line display
-    lcd_byte(0x01,LCD_CMD) # Clear display
-    time.sleep(E_DELAY)
-
-def lcd_byte(bits, mode):
-    bits_high = mode | (bits & 0xF0) | 0x08
-    bits_low = mode | ((bits<<4) & 0xF0) | 0x08
-
-    bus.write_byte(I2C_ADDR, bits_high)
-    lcd_toggle_enable(bits_high)
-
-    bus.write_byte(I2C_ADDR, bits_low)
-    lcd_toggle_enable(bits_low)
+# Use I2C bus 5
+bus = smbus.SMBus(2)
 
 def lcd_toggle_enable(bits):
-    time.sleep(E_DELAY)
-    bus.write_byte(I2C_ADDR, (bits | 0x04))
-    time.sleep(E_PULSE)
-    bus.write_byte(I2C_ADDR,(bits & ~0x04))
-    time.sleep(E_DELAY)
+    time.sleep(0.0005)
+    bus.write_byte(I2C_ADDR, (bits | ENABLE))
+    time.sleep(0.0005)
+    bus.write_byte(I2C_ADDR, (bits & ~ENABLE))
+    time.sleep(0.0005)
 
-def lcd_string(message):
-    message = message.ljust(LCD_WIDTH," ")
-    for i in range(LCD_WIDTH):
-        lcd_byte(ord(message[i]),LCD_CHR)
+def lcd_byte(bits, mode):
+    high = mode | (bits & 0xF0) | LCD_BACKLIGHT
+    low = mode | ((bits << 4) & 0xF0) | LCD_BACKLIGHT
 
-# Main program
+    bus.write_byte(I2C_ADDR, high)
+    lcd_toggle_enable(high)
+    bus.write_byte(I2C_ADDR, low)
+    lcd_toggle_enable(low)
+
+def lcd_init():
+    lcd_byte(0x33, LCD_CMD)
+    lcd_byte(0x32, LCD_CMD)
+    lcd_byte(0x06, LCD_CMD)
+    lcd_byte(0x0C, LCD_CMD)
+    lcd_byte(0x28, LCD_CMD)
+    lcd_byte(0x01, LCD_CMD)
+    time.sleep(0.005)
+
+def lcd_message(message, line):
+    message = message.ljust(LCD_WIDTH, " ")
+    lcd_byte(line, LCD_CMD)
+    for char in message:
+        lcd_byte(ord(char), LCD_CHR)
+
+# Main
 lcd_init()
-lcd_byte(LCD_LINE_1, LCD_CMD)
-lcd_string("BTC")
+lcd_message("Hello", LCD_LINE_1)
