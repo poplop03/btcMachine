@@ -13,7 +13,7 @@ LCD_LINE_2 = 0xC0
 LCD_BACKLIGHT = 0x08
 ENABLE = 0b00000100
 
-bus = smbus.SMBus(2)
+bus = smbus.SMBus(5)
 
 def lcd_toggle_enable(bits):
     time.sleep(0.0005)
@@ -68,4 +68,3 @@ while True:
         lcd_message("Conn. Error", LCD_LINE_2)
     
     time.sleep(1)
-
